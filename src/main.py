@@ -13,13 +13,12 @@ class Main:
     def __init__(self):
         pygame.init()
         self.mode = Menu().run()  # Get game mode first
-        self.screen = pygame.display.set_mode( (WIDTH, HEIGHT) )
+        self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
         pygame.display.set_caption('Chess')
         self.game = Game(self.mode)
         self.ai = AI(depth=2)  # AI player is always black (2)
 
     def mainloop(self):
-        
         screen = self.screen
         game = self.game
         board = self.game.board
@@ -29,14 +28,13 @@ class Main:
             # Draw the right sidebar background in Dark Olive Green
             pygame.draw.rect(screen, (85, 107, 47), (800, 0, SIDEBAR_WIDTH, HEIGHT))
 
-    # Now draw player boxes and the rest
+            # Draw player boxes and the rest
             game.show_player_boxes(screen, game.mode)
             game.show_bg(screen)
             game.show_last_move(screen)
             game.show_moves(screen)
             game.show_pieces(screen)
             game.show_hover(screen)
-
 
             if dragger.dragging:
                 dragger.update_blit(screen)
@@ -115,13 +113,14 @@ class Main:
                                 game.show_pieces(screen)
                                 game.show_player_boxes(screen, game.mode)
                                 game.next_turn()
+                        dragger.undrag_piece()
 
                                 # --- AI MOVE LOGIC ---
-                                if game.mode == 'ai' and game.next_player == 'black':
+                        if game.mode == 'ai' and game.next_player == 'black':
                                     _, ai_move = self.ai.minimax(board, self.ai.depth, False)
                                     if ai_move:
                                         piece, move = ai_move
-                                        if board.valid_move(piece, move):  # <--- ADD THIS CHECK
+                                        if board.valid_move(piece, move):
                                             captured = board.squares[move.final.row][move.final.col].has_piece()
                                             if captured:
                                                 captured_piece = board.squares[move.final.row][move.final.col].piece
@@ -136,62 +135,22 @@ class Main:
                                             game.show_player_boxes(screen, game.mode)
                                             game.next_turn()
 
-            # --- After all move logic (player and AI) and before pygame.display.update() ---
-            if board.is_game_over():
-                show_game_over_screen(screen)
-                game.reset()
-                board = game.board
-                dragger = game.dragger
-                continue  # Skip the rest of the loop
+                # key press and quit handling...
+                elif event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_t:
+                        game.change_theme()
+                    if event.key == pygame.K_r:
+                        game.reset()
+                        game = self.game
+                        board = self.game.board
+                        dragger = self.game.dragger
 
-            # key press and quit handling...
-            elif event.type == pygame.KEYDOWN:
-                
-                # changing themes
-                if event.key == pygame.K_t:
-                    game.change_theme()
+                elif event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
 
-                # changing themes
-                if event.key == pygame.K_r:
-                    game.reset()
-                    game = self.game
-                    board = self.game.board
-                    dragger = self.game.dragger
+            pygame.display.update()
 
-            elif event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
-        
-        pygame.display.update()
-
-
-main = Main()
-main.mainloop()
-
-# filepath: your_board_drawing_file.py
-rect = pygame.Rect(
-    X_OFFSET + col * SQSIZE,
-    Y_OFFSET + row * SQSIZE,
-    SQSIZE,
-    SQSIZE
-)
-
-def show_game_over_screen(screen):
-    font = pygame.font.SysFont('Arial', 48)
-    text = font.render("Game's Over", True, (255, 255, 255))
-    rect = text.get_rect(center=(WIDTH // 2, HEIGHT // 2))
-    screen.fill((0, 0, 0))
-    screen.blit(text, rect)
-    pygame.display.update()
-    waiting = True
-    while waiting:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
-            if event.type == pygame.KEYDOWN or event.type == pygame.MOUSEBUTTONDOWN:
-                waiting = False
-pygame.draw.rect(screen, color, rect)
-
-if board.is_game_over():
-    show_game_over_screen(screen)
+if __name__ == "__main__":
+    main = Main()
+    main.mainloop()
